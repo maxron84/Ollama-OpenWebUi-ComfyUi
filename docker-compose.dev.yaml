@@ -1,0 +1,224 @@
+# Docker Compose configuration for Ollama, Open-WebUI, ComfyUI, Watchtower, and Grafana
+# DEVELOPMENT VERSION - Includes Watchtower for automatic updates
+#
+# Prerequisites:
+# - Docker Engine with GPU support (nvidia-docker2)
+# - NVIDIA Container Toolkit installed
+#
+# Usage (from project root):
+#   cd generated/dev/
+#   docker compose up -d
+#
+# For production use: cd ../prod/ and use that configuration instead
+
+networks:
+  ai-stack:
+    driver: bridge
+    name: ai-stack-network
+
+services:
+  # -------------------------------------------------
+  # Ollama – LLM inference engine
+  # -------------------------------------------------
+  ollama:
+    image: ${OLLAMA_IMAGE:-ollama/ollama:latest}
+    container_name: ${OLLAMA_CONTAINER_NAME:-ollama}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    networks:
+      - ai-stack
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - aistack-ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=${OLLAMA_HOST:-0.0.0.0}
+      - OLLAMA_ORIGINS=${OLLAMA_ORIGINS:-*}
+    deploy:
+      resources:
+        limits:
+          memory: 16G
+          cpus: '4.0'
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ollama --version || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # -------------------------------------------------
+  # Open‑WebUI – Front‑end for Ollama
+  # -------------------------------------------------
+  open-webui:
+    image: ${OPENWEBUI_IMAGE:-ghcr.io/open-webui/open-webui:main}
+    container_name: ${OPENWEBUI_CONTAINER_NAME:-open-webui}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    networks:
+      - ai-stack
+    ports:
+      - "${OPENWEBUI_PORT:-3000}:8080"
+    volumes:
+      - aistack-open_webui_data:/app/backend/data
+    environment:
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-change-this-secret-key}
+      - WEBUI_AUTH=${WEBUI_AUTH:-true}
+      - WEBUI_NAME=${WEBUI_NAME:-Open WebUI}
+    depends_on:
+      ollama:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # -------------------------------------------------
+  # ComfyUI – Stable Diffusion Web UI
+  # -------------------------------------------------
+  comfyui:
+    image: ${COMFYUI_IMAGE:-saladtechnologies/comfyui:comfy0.3.61-api1.9.2-torch2.8.0-cuda12.8-flux1-schnell-fp8}
+    container_name: ${COMFYUI_CONTAINER_NAME:-comfyui}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    networks:
+      - ai-stack
+    ports:
+      - "${COMFYUI_PORT:-8188}:8188"
+    volumes:
+      - aistack-comfyui_data:/root/.comfyui
+    environment:
+      - COMFYUI_PORT=${COMFYUI_INTERNAL_PORT:-8188}
+    deploy:
+      resources:
+        limits:
+          memory: 24G
+          cpus: '8.0'
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8188/system_stats || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # -------------------------------------------------
+  # Watchtower – Automatic image updates (ENABLED FOR DEVELOPMENT)
+  # 
+  # ⚠️  Security Note: Watchtower requires docker.sock access
+  # 
+  # 📝 Development Use Only: This is convenient for development but NOT recommended for production
+  #    For production, use: ./update-stack.sh (includes health checks and rollback)
+  # -------------------------------------------------
+  watchtower:
+    image: ${WATCHTOWER_IMAGE:-containrrr/watchtower:latest}
+    container_name: ${WATCHTOWER_CONTAINER_NAME:-watchtower}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    networks:
+      - ai-stack
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - WATCHTOWER_CLEANUP=${WATCHTOWER_CLEANUP:-true}
+      - WATCHTOWER_INCLUDE_STOPPED=${WATCHTOWER_INCLUDE_STOPPED:-false}
+      - WATCHTOWER_SCHEDULE=${WATCHTOWER_SCHEDULE:-0 0 3 * * *}
+      - WATCHTOWER_NOTIFICATIONS=${WATCHTOWER_NOTIFICATIONS:-}
+      - WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL:-}
+      - WATCHTOWER_DEBUG=${WATCHTOWER_DEBUG:-false}
+    command:
+      - --schedule
+      - "${WATCHTOWER_SCHEDULE:-0 0 3 * * *}"
+      - --cleanup
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  # -------------------------------------------------
+  # Grafana – Metrics Visualization
+  # -------------------------------------------------
+  grafana:
+    image: ${GRAFANA_IMAGE:-grafana/grafana:latest}
+    container_name: ${GRAFANA_CONTAINER_NAME:-grafana}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    networks:
+      - ai-stack
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    volumes:
+      - aistack-grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=${GF_INSTALL_PLUGINS:-}
+      - GF_SERVER_ROOT_URL=${GF_SERVER_ROOT_URL:-http://localhost:3001}
+      - GF_ANALYTICS_REPORTING_ENABLED=${GF_ANALYTICS_ENABLED:-false}
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=${GF_ANALYTICS_UPDATES:-false}
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    stop_grace_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  aistack-ollama_data:
+    driver: local
+    name: aistack-ollama_data
+  aistack-open_webui_data:
+    driver: local
+    name: aistack-open_webui_data
+  aistack-comfyui_data:
+    driver: local
+    name: aistack-comfyui_data
+  aistack-grafana_data:
+    driver: local
+    name: aistack-grafana_data
