@@ -1,0 +1,26 @@
+NAME                             DESCRIPTION                                     STARS     OFFICIAL
+saladtechnologies/comfyui        ComfyUI, available as a stateless http API. …   4         
+comfyui/base                                                                     2         
+yanwk/comfyui-boot               🐳Docker image for bootloading 🎨ComfyUI.       53        
+comfyui/3d                                                                       0         
+clurbsauce/comfyui-runpod                                                        2         
+sombi/comfyui                    ComfyUI - Preinstalled Custom Packs For RunP…   2         
+aitrepreneur/comfyui                                                             0         
+obeliks/comfyui                  ComfyUI — A powerful and modular stable diff…   31        
+valyriantech/comfyui-with-flux                                                   1         
+ashleykza/comfyui                                                                0         
+zeroclue/comfyui                 https://github.com/ZeroClue/ComfyUI-Docker#z…   0         
+zhangp365/comfyui                the latest Comfyui Docker image, updates dai…   8         
+runpod/comfyui                                                                   2         
+aidockorg/comfyui-cuda           Multifunction ComfyUI container for cloud an…   5         
+livepeer/comfyui-base                                                            0         
+nextdiffusionai/comfyui                                                          1         
+smyshnikof/comfyui-wan                                                           0         
+runpod/worker-comfyui                                                            8         
+smyshnikof/comfyui                                                               0         
+clara17verse/clara-comfyui                                                       0         
+madiator2011/better-comfyui                                                      3         
+smyshnikof/comfyui-qwen                                                          0         
+frefrik/comfyui-flux             Docker image for running ComfyUI with FLUX.1    5         
+devopskudelabs/comfyui                                                           0         
+aclysia/sd-comfyui-krita         Stable Diffusion with all the prerequisites …   2         

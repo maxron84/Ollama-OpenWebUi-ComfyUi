@@ -1,0 +1,26 @@
+NAME                        DESCRIPTION                                     STARS     OFFICIAL
+comfyui/base                                                                2         
+sombi/comfyui               ComfyUI - Preinstalled Custom Packs For RunP…   2         
+zeroclue/comfyui            https://github.com/ZeroClue/ComfyUI-Docker#z…   0         
+obeliks/comfyui             ComfyUI — A powerful and modular stable diff…   31        
+comfyui/3d                                                                  0         
+zhangp365/comfyui           the latest Comfyui Docker image, updates dai…   8         
+aitrepreneur/comfyui                                                        0         
+wangkanai/comfyui           ComfyUI Manager Persistent Disk                 1         
+ashleykza/comfyui                                                           0         
+saladtechnologies/comfyui   ComfyUI, available as a stateless http API. …   4         
+tenofas/comfyui             ComfyUI v.0.3.30-python3.12-cuda12.1.1-torch…   0         
+32bitbadman/comfyui         comfyui image with custom nodes                 0         
+runpod/comfyui                                                              2         
+theclouditect/comfyui       Builds vanilla ComfyUI nightly (if updated).…   0         
+nextdiffusionai/comfyui                                                     1         
+smyshnikof/comfyui                                                          0         
+devopskudelabs/comfyui                                                      0         
+comfyui/mbg                                                                 0         
+simpleplan2910/comfyui      comfyui image                                   0         
+universonic/comfyui         The most powerful and modular stable diffusi…   3         
+kldtks/comfyui                                                              0         
+hicksme/comfyui                                                             0         
+beclab/comfyui                                                              0         
+hewenyulucky/comfyui        docker 打包好的comfyui                          0         
+sinfallas/comfyui           Unofficial ComfyUI docker image                 0         
