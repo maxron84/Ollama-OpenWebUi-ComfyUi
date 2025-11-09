@@ -5,11 +5,9 @@
 # - Docker Engine with GPU support (nvidia-docker2)
 # - NVIDIA Container Toolkit installed
 #
-# Usage (from project root):
-#   cd generated/dev/
-#   docker compose up -d
-#
-# For production use: cd ../prod/ and use that configuration instead
+# Usage:
+#   cp .env.dev .env  # If you want to use dev settings
+#   docker compose -f docker-compose.dev.yaml up -d
 
 networks:
   ai-stack:
