@@ -72,12 +72,12 @@ services:
   # -------------------------------------------------
   comfyui:
     image: saladtechnologies/comfyui:comfy0.3.61-api1.9.2-torch2.8.0-cuda12.8-flux1-schnell-fp8
-    container_name: comfyui
+    container_name: aistack-comfyui
     restart: always
     ports:
       - "8188:8188"
     volumes:
-      - comfyui:/root/.comfyui
+      - aistack-comfyui_data:/root/.comfyui
     deploy:
       resources:
         reservations:
