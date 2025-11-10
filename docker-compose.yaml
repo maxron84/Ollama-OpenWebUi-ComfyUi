@@ -72,14 +72,12 @@ services:
   # -------------------------------------------------
   comfyui:
     image: saladtechnologies/comfyui:comfy0.3.61-api1.9.2-torch2.8.0-cuda12.8-flux1-schnell-fp8
-    container_name: aistack-comfyui
-    restart: "no"
+    container_name: comfyui
+    restart: always
     ports:
       - "8188:8188"
     volumes:
-      - aistack-comfyui_data:/root/.comfyui
-    environment:
-      - CLI_ARGS=--lowvram --reserve-vram 2
+      - comfyui:/root/.comfyui
     deploy:
       resources:
         reservations:
@@ -88,17 +86,11 @@ services:
               count: all
               capabilities: [gpu]
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8188/system_stats || exit 1"]
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8188/status || exit 1"]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
-      start_period: 60s
-    stop_grace_period: 30s
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+      start_period: 10s
 
   # -------------------------------------------------
   # Watchtower – Automatic image updates
