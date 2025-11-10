@@ -21,14 +21,7 @@ services:
   # -------------------------------------------------
   ollama:
     image: ${OLLAMA_IMAGE:-ollama/ollama:latest}
-    # runtime: nvidia
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+    runtime: nvidia
     container_name: ${OLLAMA_CONTAINER_NAME:-ollama}
     restart: ${RESTART_POLICY:-unless-stopped}
     networks:
@@ -42,8 +35,6 @@ services:
       - OLLAMA_ORIGINS=${OLLAMA_ORIGINS:-*}
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-      - OLLAMA_NUM_GPU=1
-      - OLLAMA_GPU_LAYERS=999         # Force all layers to GPU
     healthcheck:
       test: ollama --version || exit 1
       interval: 30s
