@@ -100,6 +100,8 @@ services:
       - COMFYUI_PORT=${COMFYUI_INTERNAL_PORT:-8188}
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - PYTORCH_CUDA_ALLOC_CONF=garbage_collection_threshold:0.6,max_split_size_mb:128
+      - CUDA_MODULE_LOADING=LAZY
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8188/system_stats || exit 1"]
       interval: 30s
