@@ -9,6 +9,8 @@
 #   cp .env.dev .env  # If you want to use dev settings
 #   docker compose -f docker-compose.dev.yaml up -d
 
+version: '3'
+
 networks:
   ai-stack:
     driver: bridge
