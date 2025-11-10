@@ -14,14 +14,13 @@ networks:
     driver: bridge
     name: ai-stack-network
 
-version: '3'
+version: "3.9"
 services:
   # -------------------------------------------------
   # Ollama – LLM inference engine
   # -------------------------------------------------
   ollama:
     image: ${OLLAMA_IMAGE:-ollama/ollama:latest}
-    runtime: nvidia
     container_name: ${OLLAMA_CONTAINER_NAME:-ollama}
     restart: ${RESTART_POLICY:-unless-stopped}
     networks:
@@ -33,8 +32,13 @@ services:
     environment:
       - OLLAMA_HOST=${OLLAMA_HOST:-0.0.0.0}
       - OLLAMA_ORIGINS=${OLLAMA_ORIGINS:-*}
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     healthcheck:
       test: ollama --version || exit 1
       interval: 30s
@@ -89,7 +93,6 @@ services:
     image: ${COMFYUI_IMAGE:-saladtechnologies/comfyui:comfy0.3.61-api1.9.2-torch2.8.0-cuda12.8-flux1-schnell-fp8}
     container_name: ${COMFYUI_CONTAINER_NAME:-comfyui}
     restart: ${RESTART_POLICY:-unless-stopped}
-    runtime: nvidia
     networks:
       - ai-stack
     ports:
@@ -98,12 +101,13 @@ services:
       - aistack-comfyui_data:/root/.comfyui
     environment:
       - COMFYUI_PORT=${COMFYUI_INTERNAL_PORT:-8188}
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-      - PYTORCH_CUDA_ALLOC_CONF=garbage_collection_threshold:0.6,max_split_size_mb:128
-      - CUDA_MODULE_LOADING=LAZY
-      - COMFYUI_VRAM_MANAGEMENT=auto
-      - COMFYUI_UNLOAD_MODELS=true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8188/system_stats || exit 1"]
       interval: 30s
