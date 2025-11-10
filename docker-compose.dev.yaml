@@ -35,6 +35,8 @@ services:
       - OLLAMA_ORIGINS=${OLLAMA_ORIGINS:-*}
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - OLLAMA_LLM_LIBRARY=cuda    # Force CUDA
+      - OLLAMA_LOW_VRAM=false      # Disable low VRAM mode!
     healthcheck:
       test: ollama --version || exit 1
       interval: 30s
