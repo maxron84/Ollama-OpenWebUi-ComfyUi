@@ -78,6 +78,7 @@ services:
       - "8188:8188"
     volumes:
       - aistack-comfyui_data:/root/.comfyui
+    command: ["--listen", "*", "--lowvram", "--reserve-vram", "2"]
     deploy:
       resources:
         reservations:
