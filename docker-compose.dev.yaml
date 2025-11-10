@@ -34,8 +34,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 16G
-          cpus: '4.0'
+          memory: 48G
+          cpus: '6.0'
         reservations:
           devices:
             - driver: nvidia
@@ -111,8 +111,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 24G
-          cpus: '8.0'
+          memory: 48G
+          cpus: '6.0'
         reservations:
           devices:
             - driver: nvidia
