@@ -41,8 +41,8 @@ services:
               capabilities: [gpu]
     healthcheck:
       test: ollama --version || exit 1
-      interval: 30s
-      timeout: 5s
+      interval: 300s
+      timeout: 10s
       retries: 3
       start_period: 30s
     stop_grace_period: 30s
@@ -75,8 +75,8 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/health || exit 1"]
-      interval: 30s
-      timeout: 5s
+      interval: 300s
+      timeout: 10s
       retries: 3
       start_period: 45s
     stop_grace_period: 30s
@@ -110,7 +110,7 @@ services:
               capabilities: [gpu]
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8188/system_stats || exit 1"]
-      interval: 30s
+      interval: 300s
       timeout: 10s
       retries: 3
       start_period: 60s
@@ -181,11 +181,16 @@ services:
       - GF_ANALYTICS_CHECK_FOR_UPDATES=${GF_ANALYTICS_UPDATES:-false}
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1"]
-      interval: 30s
-      timeout: 5s
+      interval: 300s
+      timeout: 10s
       retries: 3
       start_period: 30s
     stop_grace_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '2.0'
     logging:
       driver: json-file
       options:
