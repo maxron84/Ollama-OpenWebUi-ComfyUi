@@ -32,6 +32,10 @@ services:
     environment:
       - OLLAMA_HOST=${OLLAMA_HOST:-0.0.0.0}
       - OLLAMA_ORIGINS=${OLLAMA_ORIGINS:-*}
+      # VRAM Management: Limit concurrent models and parallel requests
+      - OLLAMA_MAX_LOADED_MODELS=${OLLAMA_MAX_LOADED_MODELS:-2}
+      - OLLAMA_NUM_PARALLEL=${OLLAMA_NUM_PARALLEL:-2}
+      - OLLAMA_MAX_VRAM=${OLLAMA_MAX_VRAM:-10737418240}
     deploy:
       resources:
         reservations:
@@ -101,6 +105,8 @@ services:
       - aistack-comfyui_data:/root/.comfyui
     environment:
       - COMFYUI_PORT=${COMFYUI_INTERNAL_PORT:-8188}
+      # VRAM Management: Configure memory allocation mode
+      - CLI_ARGS=${COMFYUI_CLI_ARGS:---normalvram}
     deploy:
       resources:
         reservations:
