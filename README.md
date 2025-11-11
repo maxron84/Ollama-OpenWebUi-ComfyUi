@@ -11,4 +11,5 @@ Hardware:
   - 64GB RAM
   - M.2 SSD 2TB
 
-- development in progress until production files published in this repo -
+
+Development in progress until production files published in this repo.
