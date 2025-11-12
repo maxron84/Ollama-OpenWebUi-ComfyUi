@@ -209,6 +209,9 @@ services:
     volumes:
       - ./scripts/vram-manager.py:/app/vram-manager.py:ro
     working_dir: /app
+    environment:
+      - CHECK_INTERVAL=${VRAM_CHECK_INTERVAL:-5}
+      - VRAM_THRESHOLD=${VRAM_THRESHOLD:-75}
     entrypoint: /bin/sh
     command:
       - -c
@@ -217,8 +220,8 @@ services:
         python vram-manager.py \
           --ollama-url http://aistack-ollama:11434 \
           --comfyui-url http://aistack-comfyui:8188 \
-          --check-interval $${VRAM_CHECK_INTERVAL:-5} \
-          --vram-threshold $${VRAM_THRESHOLD:-75}
+          --check-interval $$CHECK_INTERVAL \
+          --vram-threshold $$VRAM_THRESHOLD
     depends_on:
       ollama:
         condition: service_healthy
