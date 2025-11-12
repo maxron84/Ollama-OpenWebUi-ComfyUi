@@ -207,12 +207,12 @@ services:
     networks:
       - ai-stack
     volumes:
-      - ./scripts/vram-manager.py:/app/vram-manager.py:ro
+      - ./scripts/vram-manager.py:/app/scripts/vram-manager.py:ro
     working_dir: /app
     command: 
       - /bin/sh
       - -c
-      - pip install --no-cache-dir requests && python vram-manager.py --ollama-url ${OLLAMA_BASE_URL:-http://aistack-ollama:11434} --comfyui-url http://aistack-comfyui:${COMFYUI_INTERNAL_PORT:-8188} --check-interval ${VRAM_CHECK_INTERVAL:-60} --vram-threshold ${VRAM_THRESHOLD:-75}
+      - pip install --no-cache-dir requests && python scripts/vram-manager.py --ollama-url ${OLLAMA_BASE_URL:-http://aistack-ollama:11434} --comfyui-url http://aistack-comfyui:${COMFYUI_INTERNAL_PORT:-8188} --check-interval ${VRAM_CHECK_INTERVAL:-60} --vram-threshold ${VRAM_THRESHOLD:-75}
     depends_on:
       ollama:
         condition: service_healthy
