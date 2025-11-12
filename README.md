@@ -6,7 +6,7 @@ Services:
   - Watchtower for Automatic Docker Image Updates (Dev-Stack only)
 
 Hardware:
-  - Nvidia GeForce RTX 5080
+  - Palit GeForce RTX 5080
   - AMD Ryzen 7 9800X3D
   - 64GB DDR5-6000
   - 2TB M.2 SSD PCIe 4.0
