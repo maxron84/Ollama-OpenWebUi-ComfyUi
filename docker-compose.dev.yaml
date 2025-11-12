@@ -209,14 +209,16 @@ services:
     volumes:
       - ./scripts/vram-manager.py:/app/vram-manager.py:ro
     working_dir: /app
-    command: >
-      sh -c "pip install --no-cache-dir requests &&
-             python vram-manager.py
-             --ollama-url http://aistack-ollama:11434
-             --comfyui-url http://aistack-comfyui:8188
-             --check-interval ${VRAM_CHECK_INTERVAL:-5}
-             --vram-threshold ${VRAM_THRESHOLD:-75}
-             $([ '${VRAM_DEBUG:-false}' = 'true' ] && echo '--debug' || echo '')"
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        pip install --no-cache-dir requests && \
+        python vram-manager.py \
+          --ollama-url http://aistack-ollama:11434 \
+          --comfyui-url http://aistack-comfyui:8188 \
+          --check-interval $${VRAM_CHECK_INTERVAL:-5} \
+          --vram-threshold $${VRAM_THRESHOLD:-75}
     depends_on:
       ollama:
         condition: service_healthy
