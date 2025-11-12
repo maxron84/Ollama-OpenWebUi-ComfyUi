@@ -202,26 +202,17 @@ services:
   # -------------------------------------------------
   vram-manager:
     image: python:3.11-slim
-    container_name: ${VRAM_MANAGER_CONTAINER_NAME:-aistack-vram-manager}
-    restart: ${RESTART_POLICY:-unless-stopped}
+    container_name: aistack-vram-manager
+    restart: always
     networks:
       - ai-stack
     volumes:
       - ./scripts/vram-manager.py:/app/vram-manager.py:ro
     working_dir: /app
-    environment:
-      - CHECK_INTERVAL=${VRAM_CHECK_INTERVAL:-5}
-      - VRAM_THRESHOLD=${VRAM_THRESHOLD:-75}
-    entrypoint: /bin/sh
-    command:
+    entrypoint:
+      - /bin/sh
       - -c
-      - |
-        pip install --no-cache-dir requests && \
-        python vram-manager.py \
-          --ollama-url http://aistack-ollama:11434 \
-          --comfyui-url http://aistack-comfyui:8188 \
-          --check-interval $$CHECK_INTERVAL \
-          --vram-threshold $$VRAM_THRESHOLD
+      - pip install --no-cache-dir requests && python vram-manager.py --ollama-url http://aistack-ollama:11434 --comfyui-url http://aistack-comfyui:8188 --check-interval 5 --vram-threshold 75
     depends_on:
       ollama:
         condition: service_healthy
