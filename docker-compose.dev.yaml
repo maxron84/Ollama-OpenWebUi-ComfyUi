@@ -200,34 +200,34 @@ services:
   # -------------------------------------------------
   # VRAM Manager – Automatic VRAM optimization
   # -------------------------------------------------
-  vram-manager:
-    image: python:3.11-slim
-    container_name: aistack-vram-manager
-    restart: always
-    networks:
-      - ai-stack
-    volumes:
-      - ./scripts/vram-manager.py:/app/vram-manager.py:ro
-    working_dir: /app
-    command: 
-      - /bin/sh
-      - -c
-      - pip install --no-cache-dir requests && python vram-manager.py --ollama-url http://aistack-ollama:11434 --comfyui-url http://aistack-comfyui:8188 --check-interval 5 --vram-threshold 75
-    depends_on:
-      ollama:
-        condition: service_healthy
-      comfyui:
-        condition: service_healthy
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-          cpus: '0.25'
-    logging:
-      driver: json-file
-      options:
-        max-size: "5m"
-        max-file: "2"
+  # vram-manager:
+  #   image: python:3.11-slim
+  #   container_name: aistack-vram-manager
+  #   restart: always
+  #   networks:
+  #     - ai-stack
+  #   volumes:
+  #     - ./scripts/vram-manager.py:/app/vram-manager.py:ro
+  #   working_dir: /app
+  #   command: 
+  #     - /bin/sh
+  #     - -c
+  #     - pip install --no-cache-dir requests && python vram-manager.py --ollama-url http://aistack-ollama:11434 --comfyui-url http://aistack-comfyui:8188 --check-interval 5 --vram-threshold 75
+  #   depends_on:
+  #     ollama:
+  #       condition: service_healthy
+  #     comfyui:
+  #       condition: service_healthy
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 128M
+  #         cpus: '0.25'
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       max-size: "5m"
+  #       max-file: "2"
 
 volumes:
   aistack-ollama_data:
