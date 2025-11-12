@@ -32,10 +32,6 @@ services:
     environment:
       - OLLAMA_HOST=${OLLAMA_HOST:-0.0.0.0}
       - OLLAMA_ORIGINS=${OLLAMA_ORIGINS:-*}
-      # VRAM Management: Limit concurrent models and parallel requests
-      - OLLAMA_MAX_LOADED_MODELS=${OLLAMA_MAX_LOADED_MODELS:-2}
-      - OLLAMA_NUM_PARALLEL=${OLLAMA_NUM_PARALLEL:-2}
-      - OLLAMA_MAX_VRAM=${OLLAMA_MAX_VRAM:-10737418240}
     deploy:
       resources:
         reservations:
@@ -105,8 +101,6 @@ services:
       - aistack-comfyui_data:/root/.comfyui
     environment:
       - COMFYUI_PORT=${COMFYUI_INTERNAL_PORT:-8188}
-      # VRAM Management: Configure memory allocation mode
-      - CLI_ARGS=${COMFYUI_CLI_ARGS:---normalvram}
     deploy:
       resources:
         reservations:
@@ -195,13 +189,49 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1G
+          memory: 4G
           cpus: '2.0'
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
+
+  # -------------------------------------------------
+  # VRAM Manager – Automatic VRAM optimization
+  # -------------------------------------------------
+  vram-manager:
+    image: python:3.11-slim
+    container_name: ${VRAM_MANAGER_CONTAINER_NAME:-aistack-vram-manager}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    networks:
+      - ai-stack
+    volumes:
+      - ./scripts/vram-manager.py:/app/vram-manager.py:ro
+    working_dir: /app
+    command: >
+      sh -c "pip install --no-cache-dir requests &&
+             python vram-manager.py
+             --ollama-url http://aistack-ollama:11434
+             --comfyui-url http://aistack-comfyui:8188
+             --check-interval ${VRAM_CHECK_INTERVAL:-5}
+             --vram-threshold ${VRAM_THRESHOLD:-75}
+             $([ '${VRAM_DEBUG:-false}' = 'true' ] && echo '--debug' || echo '')"
+    depends_on:
+      ollama:
+        condition: service_healthy
+      comfyui:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
 
 volumes:
   aistack-ollama_data:
