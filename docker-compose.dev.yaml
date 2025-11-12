@@ -212,7 +212,7 @@ services:
     command: 
       - /bin/sh
       - -c
-      - pip install --no-cache-dir requests && python vram-manager.py --ollama-url http://aistack-ollama:11434 --comfyui-url http://aistack-comfyui:8188 --check-interval 5 --vram-threshold 75
+      - pip install --no-cache-dir requests && python vram-manager.py --ollama-url ${OLLAMA_BASE_URL:-http://aistack-ollama:11434} --comfyui-url http://aistack-comfyui:${COMFYUI_INTERNAL_PORT:-8188} --check-interval ${VRAM_CHECK_INTERVAL:-60} --vram-threshold ${VRAM_THRESHOLD:-75}
     depends_on:
       ollama:
         condition: service_healthy
@@ -228,6 +228,8 @@ services:
       options:
         max-size: "5m"
         max-file: "2"
+    volumes:
+      - aistack-shared_state:/shared/state
 
 volumes:
   aistack-ollama_data:
@@ -242,3 +244,6 @@ volumes:
   aistack-grafana_data:
     driver: local
     name: aistack-grafana_data
+  aistack-shared_state:
+    driver: local
+    name: aistack-shared_state
