@@ -4,6 +4,7 @@ Services:
   - ComfyUi Stable-Diffusion Image/Video/Audio LLM Host + API
   - Grafana DevOps Metrics Tool
   - Watchtower for Automatic Docker Image Updates (Dev-Stack only)
+  - VRAM Manager for effective resource sharing between Ollama and ComfyUi on a single GPU setup
 
 Hardware:
   - Palit GeForce RTX 5080
