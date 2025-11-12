@@ -10,6 +10,8 @@ Hardware:
   - AMD Ryzen 7 9800X3D
   - 64GB DDR5-6000
   - 2TB M.2 SSD PCIe 4.0
+  - MSI X870E Motherboard
+  - 1000W Max Consumption
 
 Development in progress until production files published in this repo.
 
