@@ -1,9 +1,9 @@
 Services:
-  - Ollama Model Browser
+  - Ollama Local LLM Host + API
   - Open-WebUi Chat Interface
-  - ComfyUi Media Creation Interface / API
-  - Grafana DevOps Tool
-  - Watchtower for automatic docker image updates (Dev-Stack only)
+  - ComfyUi Stable-Diffusion Image/Video/Audio LLM Host + API
+  - Grafana DevOps Metrics Tool
+  - Watchtower for Automatic Docker Image Updates (Dev-Stack only)
 
 Hardware:
   - Nvidia GeForce RTX 5080
