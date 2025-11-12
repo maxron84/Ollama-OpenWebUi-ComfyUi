@@ -209,7 +209,7 @@ services:
     volumes:
       - ./scripts/vram-manager.py:/app/vram-manager.py:ro
     working_dir: /app
-    entrypoint:
+    command: 
       - /bin/sh
       - -c
       - pip install --no-cache-dir requests && python vram-manager.py --ollama-url http://aistack-ollama:11434 --comfyui-url http://aistack-comfyui:8188 --check-interval 5 --vram-threshold 75
