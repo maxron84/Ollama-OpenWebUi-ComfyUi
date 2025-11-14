@@ -103,6 +103,7 @@ services:
     environment:
       - COMFYUI_PORT=${COMFYUI_INTERNAL_PORT:-8188}
       - COMFYUI_HOST=0.0.0.0
+      - COMFYUI_WEB_ROOT=http://0.0.0.0:8188
     deploy:
       resources:
         reservations:
