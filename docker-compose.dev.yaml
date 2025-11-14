@@ -103,7 +103,8 @@ services:
     environment:
       - COMFYUI_PORT=${COMFYUI_INTERNAL_PORT:-8188}
       - COMFYUI_HOST=0.0.0.0
-      - COMFYUI_WEB_ROOT=http://0.0.0.0:8188
+      - COMFYUI_WEB_ROOT=http://${HOSTNAME:-localhost}:8188
+      - COMFYUI_ALLOW_ORIGIN=*
     deploy:
       resources:
         reservations:
@@ -173,7 +174,7 @@ services:
       - ai-stack
     ports:
       - "${GRAFANA_PORT:-3001}:3000"
-    user: "472:472"
+    user: "0:0"
     volumes:
       - ./data/grafana:/var/lib/grafana
     environment:
