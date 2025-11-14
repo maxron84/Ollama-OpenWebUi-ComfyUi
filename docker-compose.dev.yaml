@@ -102,6 +102,7 @@ services:
       - ./data/comfyui/models:/root/.comfyui/models
     environment:
       - COMFYUI_PORT=${COMFYUI_INTERNAL_PORT:-8188}
+      - COMFYUI_HOST=0.0.0.0
     deploy:
       resources:
         reservations:
