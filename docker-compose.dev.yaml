@@ -99,6 +99,7 @@ services:
       - "${COMFYUI_PORT:-8188}:8188"
     volumes:
       - aistack-comfyui_data:/root/.comfyui
+      - ./data/comfyui/models:/opt/ComfyUI/models
     environment:
       - COMFYUI_PORT=${COMFYUI_INTERNAL_PORT:-8188}
     deploy:
