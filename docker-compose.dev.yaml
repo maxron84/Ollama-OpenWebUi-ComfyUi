@@ -173,6 +173,7 @@ services:
       - ai-stack
     ports:
       - "${GRAFANA_PORT:-3001}:3000"
+    user: "472:472"
     volumes:
       - ./data/grafana:/var/lib/grafana
     environment:
