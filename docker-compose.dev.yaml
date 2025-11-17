@@ -100,6 +100,7 @@ services:
     volumes:
       - aistack-comfyui_data:/root/.comfyui
       - ./data/comfyui/models:/opt/ComfyUI/models
+      - ./data/comfyui/workflows:/opt/ComfyUI/user/default/workflows
     environment:
       - COMFYUI_PORT=${COMFYUI_INTERNAL_PORT:-8188}
     deploy:
