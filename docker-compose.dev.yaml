@@ -90,7 +90,8 @@ services:
   # ComfyUI – Stable Diffusion Web UI
   # -------------------------------------------------
   comfyui:
-    image: ${COMFYUI_IMAGE:-ghcr.io/saladtechnologies/comfyui-api:comfy0.3.67-api1.13.3-torch2.8.0-cuda12.8-runtime}
+    # image: ${COMFYUI_IMAGE:-ghcr.io/saladtechnologies/comfyui-api:comfy0.3.67-api1.13.3-torch2.8.0-cuda12.8-runtime}
+    image: ${COMFYUI_IMAGE:-ghcr.io/saladtechnologies/comfyui-api:maxron
     container_name: ${COMFYUI_CONTAINER_NAME:-comfyui}
     restart: ${RESTART_POLICY:-unless-stopped}
     networks:
