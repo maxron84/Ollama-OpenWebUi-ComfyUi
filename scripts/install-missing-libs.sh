@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+#
+# Copy this script into the currently running ComfyUI Docker Container and execute it there
+#
 set -euo pipefail
 
 # Update package lists and upgrade local packages
