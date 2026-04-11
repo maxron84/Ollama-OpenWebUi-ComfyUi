@@ -16,7 +16,7 @@ Requirements:
 - requests library (pip install requests)
 
 Usage:
-  python3 vram-manager.py [options]
+  python3 vram_manager.py [options]
 
 Options:
   --ollama-url URL       Ollama API URL (default: http://localhost:11434)
@@ -329,33 +329,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-import json
-import time
-from pathlib import Path
-
-STATE_FILE = Path("/shared/state/gpu_status.json")
-
-def update_state(available: bool, holder: str):
-    """Update shared GPU state file atomically with availability info."""
-    state = {
-        "gpu_available": available,
-        "holder": holder,
-        "last_updated": time.strftime("%Y-%m-%dT%H:%M:%SZ")
-    }
-    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    STATE_FILE.write_text(json.dumps(state), encoding="utf-8")
-
-def wait_for_gpu(timeout: int = 60):
-    """Wait until GPU becomes available or timeout expires."""
-    if not STATE_FILE.exists():
-        return True
-    for _ in range(timeout):
-        try:
-            state = json.loads(STATE_FILE.read_text(encoding="utf-8"))
-            if state.get("gpu_available", True):
-                return True
-        except Exception:
-            pass
-        time.sleep(1)
-    return False

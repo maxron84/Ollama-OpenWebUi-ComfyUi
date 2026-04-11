@@ -215,5 +215,3 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Added by maxron84
-generated/

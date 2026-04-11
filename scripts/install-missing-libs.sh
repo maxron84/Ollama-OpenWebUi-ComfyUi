@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Copy this script into the currently running ComfyUI docker container and execute it there,
-# or just copy ahd paste all of the apt-get statements and run them in the container. 
+# or just copy and paste all of the apt-get statements and run them in the container. 
 #
 set -euo pipefail
 

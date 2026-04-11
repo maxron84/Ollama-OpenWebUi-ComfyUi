@@ -1,5 +1,5 @@
-# Docker Compose configuration for Ollama, Open-WebUI, ComfyUI, Watchtower, and Grafana
-# DEVELOPMENT VERSION - Includes Watchtower for automatic updates
+# Docker Compose configuration for Ollama, Open-WebUI, ComfyUI, VRAM Manager, Watchtower, and Grafana
+# DEVELOPMENT VERSION - All services including VRAM Manager and Watchtower
 #
 # Prerequisites:
 # - Docker Engine with GPU support (nvidia-docker2)
@@ -14,7 +14,6 @@ networks:
     driver: bridge
     name: ai-stack-network
 
-version: "3.9"
 services:
   # -------------------------------------------------
   # Ollama – LLM inference engine
@@ -32,6 +31,9 @@ services:
     environment:
       - OLLAMA_HOST=${OLLAMA_HOST:-0.0.0.0}
       - OLLAMA_ORIGINS=${OLLAMA_ORIGINS:-*}
+      - OLLAMA_MAX_VRAM=${OLLAMA_MAX_VRAM:-10737418240}
+      - OLLAMA_MAX_LOADED_MODELS=${OLLAMA_MAX_LOADED_MODELS:-2}
+      - OLLAMA_NUM_PARALLEL=${OLLAMA_NUM_PARALLEL:-2}
     deploy:
       resources:
         reservations:
@@ -90,8 +92,8 @@ services:
   # ComfyUI – Stable Diffusion Web UI
   # -------------------------------------------------
   comfyui:
+    # TODO: Update to latest runtime tag from https://github.com/SaladTechnologies/comfyui-api/pkgs/container/comfyui-api
     image: ${COMFYUI_IMAGE:-ghcr.io/saladtechnologies/comfyui-api:comfy0.3.67-api1.13.3-torch2.8.0-cuda12.8-runtime}
-    # image: ${COMFYUI_IMAGE:-ghcr.io/saladtechnologies/comfyui-api:maxron}
     container_name: ${COMFYUI_CONTAINER_NAME:-comfyui}
     restart: ${RESTART_POLICY:-unless-stopped}
     networks:
@@ -105,6 +107,7 @@ services:
       - ./data/comfyui/custom_nodes:/opt/ComfyUI/custom_nodes
     environment:
       - COMFYUI_PORT=${COMFYUI_INTERNAL_PORT:-8188}
+      - CLI_ARGS=${COMFYUI_CLI_ARGS:---normalvram}
     deploy:
       resources:
         reservations:
@@ -127,11 +130,9 @@ services:
 
   # -------------------------------------------------
   # Watchtower – Automatic image updates (ENABLED FOR DEVELOPMENT)
-  # 
+  #
   # ⚠️  Security Note: Watchtower requires docker.sock access
-  # 
-  # 📝 Development Use Only: This is convenient for development but NOT recommended for production
-  #    For production, use: ./update-stack.sh (includes health checks and rollback)
+  # 📝 Development Use Only: Not recommended for production
   # -------------------------------------------------
   watchtower:
     image: ${WATCHTOWER_IMAGE:-containrrr/watchtower:latest}
@@ -203,42 +204,42 @@ services:
 
   # -------------------------------------------------
   # VRAM Manager – Automatic VRAM optimization
+  # Monitors Ollama model loading and frees ComfyUI VRAM
+  # to prevent Ollama from falling back to CPU mode.
   # -------------------------------------------------
-  # vram-manager:
-  #   image: python:3.11-slim
-  #   container_name: aistack-vram-manager
-  #   restart: always
-  #   networks:
-  #     - ai-stack
-  #   volumes:
-  #     - ./scripts:/app/scripts:ro
-  #   working_dir: /app
-  #   command: 
-  #     - /bin/sh
-  #     - -c
-  #     - pip install --no-cache-dir requests \
-  #       && python /app/scripts/vram-manager.py \
-  #       --ollama-url ${OLLAMA_BASE_URL:-http://aistack-ollama:11434} \
-  #       --comfyui-url http://aistack-comfyui:${COMFYUI_INTERNAL_PORT:-8188} \
-  #       --check-interval ${VRAM_CHECK_INTERVAL:-60} \
-  #       --vram-threshold ${VRAM_THRESHOLD:-75}
-  #   depends_on:
-  #     ollama:
-  #       condition: service_healthy
-  #     comfyui:
-  #       condition: service_healthy
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: 128M
-  #         cpus: '0.25'
-  #   logging:
-  #     driver: json-file
-  #     options:
-  #       max-size: "5m"
-  #       max-file: "2"
-  #   volumes:
-  #     - aistack-shared_state:/shared/state
+  vram-manager:
+    image: python:3.11-slim
+    container_name: ${VRAM_MANAGER_CONTAINER_NAME:-aistack-vram-manager}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    networks:
+      - ai-stack
+    volumes:
+      - ./scripts:/app/scripts:ro
+    working_dir: /app
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        pip install --no-cache-dir requests &&
+        python /app/scripts/vram_manager.py \
+          --ollama-url http://aistack-ollama:11434 \
+          --comfyui-url http://aistack-comfyui:${COMFYUI_INTERNAL_PORT:-8188} \
+          --check-interval ${VRAM_CHECK_INTERVAL:-5} \
+          --vram-threshold ${VRAM_THRESHOLD:-75}
+    depends_on:
+      ollama:
+        condition: service_healthy
+      comfyui:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
 
 volumes:
   aistack-ollama_data:
@@ -253,6 +254,3 @@ volumes:
   aistack-grafana_data:
     driver: local
     name: aistack-grafana_data
-  aistack-shared_state:
-    driver: local
-    name: aistack-shared_state
