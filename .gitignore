@@ -218,3 +218,9 @@ __marimo__/
 # Claude Code
 .claude/
 
+# ComfyUI data — keep directory structure, ignore actual content
+data/comfyui/models/*
+data/comfyui/custom_nodes/*
+!data/comfyui/models/.gitkeep
+!data/comfyui/custom_nodes/.gitkeep
+

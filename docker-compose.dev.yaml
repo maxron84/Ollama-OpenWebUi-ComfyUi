@@ -102,7 +102,6 @@ services:
     volumes:
       - aistack-comfyui_data:/root/ComfyUI/user
       - ./data/comfyui/models:/root/ComfyUI/models
-      - ./data/comfyui/workflows:/root/ComfyUI/user/default/workflows
       - ./data/comfyui/custom_nodes:/root/ComfyUI/custom_nodes
     environment:
       - CLI_ARGS=${COMFYUI_CLI_ARGS:---normalvram}
