@@ -92,8 +92,7 @@ services:
   # ComfyUI – Stable Diffusion Web UI
   # -------------------------------------------------
   comfyui:
-    # TODO: Update to latest runtime tag from https://github.com/SaladTechnologies/comfyui-api/pkgs/container/comfyui-api
-    image: ${COMFYUI_IMAGE:-ghcr.io/saladtechnologies/comfyui-api:comfy0.3.67-api1.13.3-torch2.8.0-cuda12.8-runtime}
+    image: ${COMFYUI_IMAGE:-mmartial/comfyui-nvidia-docker:ubuntu24_cuda12.8-latest}
     container_name: ${COMFYUI_CONTAINER_NAME:-comfyui}
     restart: ${RESTART_POLICY:-unless-stopped}
     networks:
@@ -101,13 +100,15 @@ services:
     ports:
       - "${COMFYUI_PORT:-8188}:8188"
     volumes:
-      - aistack-comfyui_data:/root/.comfyui
-      - ./data/comfyui/models:/opt/ComfyUI/models
-      - ./data/comfyui/workflows:/opt/ComfyUI/user/default/workflows
-      - ./data/comfyui/custom_nodes:/opt/ComfyUI/custom_nodes
+      - aistack-comfyui_run:/comfy/mnt
+      - aistack-comfyui_data:/basedir
+      - ./data/comfyui/models:/basedir/models
+      - ./data/comfyui/workflows:/basedir/user/default/workflows
+      - ./data/comfyui/custom_nodes:/basedir/custom_nodes
     environment:
-      - COMFYUI_PORT=${COMFYUI_INTERNAL_PORT:-8188}
-      - CLI_ARGS=${COMFYUI_CLI_ARGS:---normalvram}
+      - BASE_DIRECTORY=/basedir
+      - NVIDIA_VISIBLE_DEVICES=all
+      - COMFY_CMDLINE_EXTRA=${COMFYUI_CLI_ARGS:---normalvram}
     deploy:
       resources:
         reservations:
@@ -120,7 +121,7 @@ services:
       interval: 300s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 120s
     stop_grace_period: 30s
     logging:
       driver: json-file
@@ -248,6 +249,9 @@ volumes:
   aistack-open_webui_data:
     driver: local
     name: aistack-open_webui_data
+  aistack-comfyui_run:
+    driver: local
+    name: aistack-comfyui_run
   aistack-comfyui_data:
     driver: local
     name: aistack-comfyui_data

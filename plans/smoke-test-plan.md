@@ -26,26 +26,17 @@ cd /path/to/Ollama-OpenWebUi-ComfyUi
 
 ---
 
-## Step 1: Update ComfyUI Image Tag (Phase 3 remainder)
+## Step 1: Verify ComfyUI Image is Pullable
 
-Before starting the stack, research and update the ComfyUI image to the latest available runtime tag:
+The ComfyUI image has been switched from the pinned SaladTechnologies GHCR tag to
+`mmartial/comfyui-nvidia-docker:ubuntu24_cuda12.8-latest` (Docker Hub). Verify it
+can be pulled before starting the full stack:
 
 ```bash
-# Option A: Browse GHCR packages page
-# https://github.com/SaladTechnologies/comfyui-api/pkgs/container/comfyui-api
-# Look for the latest tag matching: comfyX.X.X-apiX.X.X-torchX.X.X-cuda12.8-runtime
-
-# Option B: Use Docker CLI (if authenticated)
-docker pull ghcr.io/saladtechnologies/comfyui-api:latest
-docker image inspect ghcr.io/saladtechnologies/comfyui-api:latest | grep -i tag
-
-# Update the tag in .env.dev:
-# COMFYUI_IMAGE=ghcr.io/saladtechnologies/comfyui-api:<new-tag>
-#
-# And optionally remove the TODO comment in docker-compose.dev.yaml line 95.
+docker pull mmartial/comfyui-nvidia-docker:ubuntu24_cuda12.8-latest
 ```
 
-**If tag research is blocked:** Proceed with the existing tag — it will still work.
+**Expected:** Pull succeeds. Image is ~several GB; allow a few minutes on first pull.
 
 ---
 
