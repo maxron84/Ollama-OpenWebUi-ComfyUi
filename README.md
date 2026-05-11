@@ -9,8 +9,6 @@ A self-hosted AI inference stack running on a single NVIDIA GPU, orchestrated wi
 | **Ollama** | LLM inference engine (chat, code, etc.) | [localhost:11434](http://localhost:11434) |
 | **Open-WebUI** | Web chat frontend for Ollama | [localhost:3000](http://localhost:3000) |
 | **ComfyUI** | Stable Diffusion image/video/audio generation | [localhost:8188](http://localhost:8188) |
-| **Grafana** | Metrics visualization | [localhost:3001](http://localhost:3001) |
-| **Watchtower** | Automatic Docker image updates (dev only) | — |
 | **VRAM Manager** | Automatic GPU memory arbitration | — |
 
 ## Hardware
@@ -31,14 +29,19 @@ A self-hosted AI inference stack running on a single NVIDIA GPU, orchestrated wi
 ## Quick Start
 
 ```bash
-# Start all services (including VRAM Manager)
-docker compose -f docker-compose.dev.yaml up -d
+# 1. Configure environment
+cp .env.example .env
+# Edit .env and set WEBUI_SECRET_KEY:
+#   openssl rand -hex 32
 
-# Check status
-docker compose -f docker-compose.dev.yaml ps
+# 2. Start all services
+docker compose up -d
 
-# View logs
-docker compose -f docker-compose.dev.yaml logs -f
+# 3. Check status
+docker compose ps
+
+# 4. View logs
+docker compose logs -f
 
 # Monitor VRAM Manager
 docker logs -f aistack-vram-manager
@@ -50,31 +53,25 @@ watch -n 1 nvidia-smi
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                Docker Network: ai-stack-network              │
-│                                                              │
-│  ┌──────────┐   ┌────────────┐   ┌──────────┐              │
-│  │  Ollama   │◄──│ Open-WebUI │   │ ComfyUI  │              │
-│  │ LLM Host  │   │   Chat UI  │   │ Image Gen│              │
-│  │ :11434    │   │  :3000     │   │ :8188    │              │
-│  └─────┬─────┘   └────────────┘   └────┬─────┘              │
-│        │                                │                    │
-│        │         ┌──────────────┐       │                    │
-│        └─────────│ VRAM Manager │───────┘                    │
-│                  │ GPU Arbiter  │                             │
-│                  └──────────────┘                             │
-│                                                              │
-│  ┌──────────┐   ┌──────────────┐                            │
-│  │ Grafana  │   │  Watchtower  │                            │
-│  │ Metrics  │   │ Auto-Updates │                            │
-│  │ :3001    │   │  (dev only)  │                            │
-│  └──────────┘   └──────────────┘                            │
-└─────────────────────────────────────────────────────────────┘
-                          │
-                  ┌───────┴───────┐
-                  │  NVIDIA GPU   │
-                  │  16 GB VRAM   │
-                  └───────────────┘
+┌─────────────────────────────────────────────────┐
+│           Docker Network: ai-stack-network       │
+│                                                  │
+│  ┌──────────┐   ┌────────────┐   ┌──────────┐   │
+│  │  Ollama   │◄──│ Open-WebUI │   │ ComfyUI  │   │
+│  │ LLM Host  │   │   Chat UI  │   │ Image Gen│   │
+│  │ :11434    │   │  :3000     │   │ :8188    │   │
+│  └─────┬─────┘   └────────────┘   └────┬─────┘   │
+│        │                                │         │
+│        │         ┌──────────────┐       │         │
+│        └─────────│ VRAM Manager │───────┘         │
+│                  │ GPU Arbiter  │                  │
+│                  └──────────────┘                  │
+└─────────────────────────────────────────────────┘
+                        │
+                ┌───────┴───────┐
+                │  NVIDIA GPU   │
+                │  16 GB VRAM   │
+                └───────────────┘
 ```
 
 ## VRAM Management
@@ -85,12 +82,12 @@ See **[docs/VRAM-Management.md](docs/VRAM-Management.md)** for configuration, tu
 
 ## Configuration
 
-All settings are in [`.env.dev`](.env.dev). Key parameters:
+All settings are in [`.env.example`](.env.example) — copy to `.env` and adjust. Key parameters:
 
 ```bash
 # VRAM Manager
 VRAM_CHECK_INTERVAL=5       # Check every 5 seconds
-VRAM_THRESHOLD=75            # Free ComfyUI when VRAM > 75%
+VRAM_THRESHOLD=75           # Free ComfyUI when VRAM > 75%
 
 # Ollama VRAM limits
 OLLAMA_MAX_VRAM=10737418240  # 10 GB
@@ -101,8 +98,7 @@ OLLAMA_NUM_PARALLEL=2        # Parallel requests
 COMFYUI_CLI_ARGS=--normalvram
 ```
 
-## Development Notes
+## Notes
 
 - All content has been written using various AI assistants
 - Selection of models, prompting, content supervision, review, testing and refactoring is done by hand
-- This is a development configuration — not hardened for production use

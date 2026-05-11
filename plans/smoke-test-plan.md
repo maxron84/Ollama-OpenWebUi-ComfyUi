@@ -1,4 +1,4 @@
-# Phase 6: Smoke Test Plan
+# Smoke Test Plan
 
 **Target Machine:** RTX 5080 (16 GB VRAM), Ryzen 7 9800X3D, 64 GB DDR5  
 **Prerequisites:** Docker Engine + NVIDIA Container Toolkit installed, repo cloned  
@@ -28,9 +28,6 @@ cd /path/to/Ollama-OpenWebUi-ComfyUi
 
 ## Step 1: Verify ComfyUI Image is Pullable
 
-The ComfyUI image is `yanwk/comfyui-boot:cu128-slim` (Docker Hub). Verify it
-can be pulled before starting the full stack:
-
 ```bash
 docker pull yanwk/comfyui-boot:cu128-slim
 ```
@@ -39,31 +36,32 @@ docker pull yanwk/comfyui-boot:cu128-slim
 
 ---
 
-## Step 2: Start the Stack
+## Step 2: Configure and Start the Stack
 
 ```bash
-# Copy env file if not already done
-cp .env.dev .env
+# Copy and edit the env file
+cp .env.example .env
+# Set WEBUI_SECRET_KEY — required, stack will not start without it:
+#   openssl rand -hex 32
 
 # Pull all images first (so startup is clean)
-docker compose -f docker-compose.dev.yaml pull
+docker compose pull
 
 # Start all services
-docker compose -f docker-compose.dev.yaml up -d
+docker compose up -d
 
-# Watch startup progress
-docker compose -f docker-compose.dev.yaml logs -f
-# (Ctrl+C to exit log follow when services are up)
+# Watch startup progress (Ctrl+C to stop following)
+docker compose logs -f
 ```
 
-**Expected:** 6 containers start: `aistack-ollama`, `aistack-open-webui`, `aistack-comfyui`, `aistack-watchtower`, `aistack-grafana`, `aistack-vram-manager`.
+**Expected:** 4 containers start: `aistack-ollama`, `aistack-open-webui`, `aistack-comfyui`, `aistack-vram-manager`.
 
 ---
 
 ## Step 3: Verify All Services Running
 
 ```bash
-docker compose -f docker-compose.dev.yaml ps
+docker compose ps
 ```
 
 **Expected output (all healthy/running):**
@@ -73,8 +71,6 @@ docker compose -f docker-compose.dev.yaml ps
 | aistack-ollama | Running (healthy) | 11434 |
 | aistack-open-webui | Running (healthy) | 3000→8080 |
 | aistack-comfyui | Running (healthy) | 8188 |
-| aistack-grafana | Running (healthy) | 3001→3000 |
-| aistack-watchtower | Running | — |
 | aistack-vram-manager | Running | — |
 
 **If a service is unhealthy or restarting:**
@@ -108,7 +104,6 @@ curl -s http://localhost:11434/api/generate -d '{
 ### 4b. Open-WebUI
 
 ```bash
-# Health endpoint
 curl -s http://localhost:3000/health
 ```
 
@@ -119,19 +114,12 @@ Then open **http://localhost:3000** in a browser. Create an account, select the 
 ### 4c. ComfyUI
 
 ```bash
-# System stats endpoint
 curl -s http://localhost:8188/system_stats | python3 -m json.tool
 ```
 
 Then open **http://localhost:8188** in a browser. Load the default workflow and queue a generation (if a model is available).
 
 **Expected:** ComfyUI UI loads. System stats show GPU info.
-
-### 4d. Grafana
-
-Open **http://localhost:3001** in a browser. Login with `admin` / `admin`.
-
-**Expected:** Grafana dashboard loads. No data sources configured yet (expected for dev).
 
 ---
 
@@ -156,8 +144,6 @@ Monitoring started...
 
 ### 5b. Trigger a model load and watch the logs
 
-Open two terminals side by side:
-
 **Terminal 1 — VRAM Manager logs:**
 ```bash
 docker logs -f aistack-vram-manager
@@ -165,10 +151,8 @@ docker logs -f aistack-vram-manager
 
 **Terminal 2 — Trigger model load:**
 ```bash
-# Pull a second model to trigger VRAM Manager
 docker exec aistack-ollama ollama pull llama3.2
 
-# Send a request to load it (triggers VRAM Manager)
 curl -s http://localhost:11434/api/generate -d '{
   "model": "llama3.2",
   "prompt": "Hello",
@@ -188,58 +172,40 @@ New Ollama model(s) detected: {'llama3.2'}
 nvidia-smi
 ```
 
-**Expected:** Ollama is using GPU memory for the new model. ComfyUI's GPU allocation should have dropped (if it had any loaded).
+**Expected:** Ollama is using GPU memory for the new model. ComfyUI's GPU allocation should have dropped.
 
 ---
 
 ## Step 6: Test Under Load
 
-### 6a. Concurrent chat + image generation
-
 1. In **Open-WebUI** (browser): Start a conversation with `mistral`
 2. In **ComfyUI** (browser): Queue an image generation workflow
-3. Monitor in a terminal:
+3. Monitor:
    ```bash
    watch -n 1 nvidia-smi
+   docker logs -f aistack-vram-manager
    ```
 
-**Expected:** Both services run on GPU. VRAM Manager logs show activity if threshold is exceeded. No OOM errors.
-
-### 6b. Check VRAM Manager handles pressure
-
-```bash
-# Watch VRAM Manager while both services are active
-docker logs -f aistack-vram-manager
-```
-
-**Expected:** If VRAM exceeds 75%, you'll see threshold-triggered frees. If a new model loads, you'll see model-triggered frees.
+**Expected:** Both services run on GPU. No OOM errors. VRAM Manager logs show frees if threshold is exceeded.
 
 ---
 
 ## Step 7: Resource Check
 
 ```bash
-# All container resource usage
 docker stats --no-stream
-
-# VRAM Manager specifically (should be <128MB RAM, <0.25 CPU)
 docker stats aistack-vram-manager --no-stream
 ```
 
-**Expected:** VRAM Manager uses ~30-50 MB RAM, <1% CPU.
+**Expected:** VRAM Manager uses ~30–50 MB RAM, <1% CPU.
 
 ---
 
 ## Step 8: Shutdown Test
 
 ```bash
-# Graceful shutdown
-docker compose -f docker-compose.dev.yaml down
-
-# Verify all containers stopped
+docker compose down
 docker ps
-
-# Verify volumes persist
 docker volume ls | grep aistack
 ```
 
@@ -251,18 +217,17 @@ docker volume ls | grep aistack
 
 | # | Check | Pass? |
 |---|-------|-------|
-| 1 | All 6 containers start and become healthy | ☐ |
+| 1 | All 4 containers start and become healthy | ☐ |
 | 2 | Ollama serves chat responses on GPU | ☐ |
 | 3 | Open-WebUI frontend loads and connects to Ollama | ☐ |
 | 4 | ComfyUI UI loads and shows GPU stats | ☐ |
-| 5 | Grafana login works | ☐ |
-| 6 | VRAM Manager connects to both services on startup | ☐ |
-| 7 | VRAM Manager detects new model load and frees ComfyUI memory | ☐ |
-| 8 | Concurrent chat + image generation works without OOM | ☐ |
-| 9 | VRAM Manager resource usage is within limits (<128MB, <0.25 CPU) | ☐ |
-| 10 | Graceful shutdown works, volumes persist | ☐ |
+| 5 | VRAM Manager connects to both services on startup | ☐ |
+| 6 | VRAM Manager detects new model load and frees ComfyUI memory | ☐ |
+| 7 | Concurrent chat + image generation works without OOM | ☐ |
+| 8 | VRAM Manager resource usage is within limits (<128MB, <0.25 CPU) | ☐ |
+| 9 | Graceful shutdown works, volumes persist | ☐ |
 
-**If all 10 pass: Dev stack is operational.** 🎉
+**If all 9 pass: Stack is operational.**
 
 ---
 
@@ -272,7 +237,8 @@ docker volume ls | grep aistack
 |---------|---------|-----|
 | Container won't start | `docker logs <name>` | Check error message |
 | GPU not found | `nvidia-smi` | Install NVIDIA Container Toolkit |
+| Stack won't start (WEBUI_SECRET_KEY) | — | Run `openssl rand -hex 32` and set in `.env` |
 | VRAM Manager can't connect | `docker network inspect ai-stack-network` | Verify all on same network |
 | Ollama on CPU (very slow) | `docker logs aistack-ollama \| grep offload` | VRAM Manager should auto-fix |
-| ComfyUI OOM | Set `COMFYUI_CLI_ARGS=--lowvram` in `.env.dev` | Restart stack |
+| ComfyUI OOM | Set `COMFYUI_CLI_ARGS=--lowvram` in `.env` | Restart stack |
 | Model pull fails | `docker exec aistack-ollama ollama list` | Check disk space |

@@ -1,13 +1,12 @@
-# Docker Compose configuration for Ollama, Open-WebUI, ComfyUI, VRAM Manager, Watchtower, and Grafana
-# DEVELOPMENT VERSION - All services including VRAM Manager and Watchtower
+# Docker Compose – Ollama + Open-WebUI + ComfyUI + VRAM Manager
 #
 # Prerequisites:
-# - Docker Engine with GPU support (nvidia-docker2)
-# - NVIDIA Container Toolkit installed
+#   - Docker Engine with GPU support (nvidia-docker2)
+#   - NVIDIA Container Toolkit installed
 #
-# Usage:
-#   cp .env.dev .env  # If you want to use dev settings
-#   docker compose -f docker-compose.dev.yaml up -d
+# Setup:
+#   cp .env.example .env   # then edit .env and set WEBUI_SECRET_KEY
+#   docker compose up -d
 
 networks:
   ai-stack:
@@ -20,7 +19,7 @@ services:
   # -------------------------------------------------
   ollama:
     image: ${OLLAMA_IMAGE:-ollama/ollama:latest}
-    container_name: ${OLLAMA_CONTAINER_NAME:-ollama}
+    container_name: ${OLLAMA_CONTAINER_NAME:-aistack-ollama}
     restart: ${RESTART_POLICY:-unless-stopped}
     networks:
       - ai-stack
@@ -55,11 +54,11 @@ services:
         max-file: "3"
 
   # -------------------------------------------------
-  # Open‑WebUI – Front‑end for Ollama
+  # Open-WebUI – Chat frontend for Ollama
   # -------------------------------------------------
   open-webui:
     image: ${OPENWEBUI_IMAGE:-ghcr.io/open-webui/open-webui:main}
-    container_name: ${OPENWEBUI_CONTAINER_NAME:-open-webui}
+    container_name: ${OPENWEBUI_CONTAINER_NAME:-aistack-open-webui}
     restart: ${RESTART_POLICY:-unless-stopped}
     networks:
       - ai-stack
@@ -68,8 +67,8 @@ services:
     volumes:
       - aistack-open_webui_data:/app/backend/data
     environment:
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
-      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-change-this-secret-key}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://aistack-ollama:11434}
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:?Set WEBUI_SECRET_KEY in .env (generate with: openssl rand -hex 32)}
       - WEBUI_AUTH=${WEBUI_AUTH:-true}
       - WEBUI_NAME=${WEBUI_NAME:-Open WebUI}
     depends_on:
@@ -93,7 +92,7 @@ services:
   # -------------------------------------------------
   comfyui:
     image: ${COMFYUI_IMAGE:-yanwk/comfyui-boot:cu128-slim}
-    container_name: ${COMFYUI_CONTAINER_NAME:-comfyui}
+    container_name: ${COMFYUI_CONTAINER_NAME:-aistack-comfyui}
     restart: ${RESTART_POLICY:-unless-stopped}
     networks:
       - ai-stack
@@ -119,80 +118,6 @@ services:
       retries: 3
       start_period: 60s
     stop_grace_period: 30s
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  # -------------------------------------------------
-  # Watchtower – Automatic image updates (ENABLED FOR DEVELOPMENT)
-  #
-  # ⚠️  Security Note: Watchtower requires docker.sock access
-  # 📝 Development Use Only: Not recommended for production
-  # -------------------------------------------------
-  watchtower:
-    image: ${WATCHTOWER_IMAGE:-containrrr/watchtower:latest}
-    container_name: ${WATCHTOWER_CONTAINER_NAME:-watchtower}
-    restart: ${RESTART_POLICY:-unless-stopped}
-    networks:
-      - ai-stack
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    environment:
-      - WATCHTOWER_CLEANUP=${WATCHTOWER_CLEANUP:-true}
-      - WATCHTOWER_INCLUDE_STOPPED=${WATCHTOWER_INCLUDE_STOPPED:-false}
-      - WATCHTOWER_SCHEDULE=${WATCHTOWER_SCHEDULE:-0 0 3 * * *}
-      - WATCHTOWER_NOTIFICATIONS=${WATCHTOWER_NOTIFICATIONS:-}
-      - WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL:-}
-      - WATCHTOWER_DEBUG=${WATCHTOWER_DEBUG:-false}
-    command:
-      - --schedule
-      - "${WATCHTOWER_SCHEDULE:-0 0 3 * * *}"
-      - --cleanup
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.5'
-    logging:
-      driver: json-file
-      options:
-        max-size: "5m"
-        max-file: "2"
-
-  # -------------------------------------------------
-  # Grafana – Metrics Visualization
-  # -------------------------------------------------
-  grafana:
-    image: ${GRAFANA_IMAGE:-grafana/grafana:latest}
-    container_name: ${GRAFANA_CONTAINER_NAME:-grafana}
-    restart: ${RESTART_POLICY:-unless-stopped}
-    networks:
-      - ai-stack
-    ports:
-      - "${GRAFANA_PORT:-3001}:3000"
-    volumes:
-      - aistack-grafana_data:/var/lib/grafana
-    environment:
-      - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD:-admin}
-      - GF_INSTALL_PLUGINS=${GF_INSTALL_PLUGINS:-}
-      - GF_SERVER_ROOT_URL=${GF_SERVER_ROOT_URL:-http://localhost:3001}
-      - GF_ANALYTICS_REPORTING_ENABLED=${GF_ANALYTICS_ENABLED:-false}
-      - GF_ANALYTICS_CHECK_FOR_UPDATES=${GF_ANALYTICS_UPDATES:-false}
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1"]
-      interval: 300s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    stop_grace_period: 10s
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-          cpus: '2.0'
     logging:
       driver: json-file
       options:
@@ -248,6 +173,3 @@ volumes:
   aistack-comfyui_data:
     driver: local
     name: aistack-comfyui_data
-  aistack-grafana_data:
-    driver: local
-    name: aistack-grafana_data
