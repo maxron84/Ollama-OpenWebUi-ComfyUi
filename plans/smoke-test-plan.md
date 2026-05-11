@@ -28,12 +28,11 @@ cd /path/to/Ollama-OpenWebUi-ComfyUi
 
 ## Step 1: Verify ComfyUI Image is Pullable
 
-The ComfyUI image has been switched from the pinned SaladTechnologies GHCR tag to
-`mmartial/comfyui-nvidia-docker:ubuntu24_cuda12.8-latest` (Docker Hub). Verify it
+The ComfyUI image is `yanwk/comfyui-boot:cu128-slim` (Docker Hub). Verify it
 can be pulled before starting the full stack:
 
 ```bash
-docker pull mmartial/comfyui-nvidia-docker:ubuntu24_cuda12.8-latest
+docker pull yanwk/comfyui-boot:cu128-slim
 ```
 
 **Expected:** Pull succeeds. Image is ~several GB; allow a few minutes on first pull.

@@ -8,7 +8,7 @@ A self-hosted AI inference stack running on a single NVIDIA GPU, orchestrated wi
 |---------|---------|------|
 | **Ollama** | LLM inference engine (chat, code, etc.) | [localhost:11434](http://localhost:11434) |
 | **Open-WebUI** | Web chat frontend for Ollama | [localhost:3000](http://localhost:3000) |
-| **ComfyUI** | Image/video/audio generation (mmartial/comfyui-nvidia-docker) | [localhost:8188](http://localhost:8188) |
+| **ComfyUI** | Stable Diffusion image/video/audio generation | [localhost:8188](http://localhost:8188) |
 | **Grafana** | Metrics visualization | [localhost:3001](http://localhost:3001) |
 | **Watchtower** | Automatic Docker image updates (dev only) | — |
 | **VRAM Manager** | Automatic GPU memory arbitration | — |
